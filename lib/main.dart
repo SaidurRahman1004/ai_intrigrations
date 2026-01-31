@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:http/http.dart' as http;
 import 'Simulation/ai_semolatiom_demo.dart';
+import 'core/constant.dart';
 import 'gmini/screens/chat_screen.dart';
 
 void main() async{
@@ -71,6 +72,19 @@ class AiPractise extends StatelessWidget {
 class AiProjects extends StatelessWidget {
   const AiProjects({super.key});
 
+  Future<void> listMyAvailableModels() async {
+    final url = 'https://generativelanguage.googleapis.com/v1beta/models?key=${AppConst.gminiApi}';
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      print("Avilable models for you:");
+      print(response.body);
+    } else {
+      print("error: ${response.statusCode}, messege: ${response.body}");
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,12 +107,22 @@ class AiProjects extends StatelessWidget {
           ProjectCard(
             icon: Icons.air,
             name: 'Gmini Intrigration',
-            description: 'Gmini',
+            description: 'Gmini gemini-2.5-flash',
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ChatScreen()),
               );
+            },
+          ),
+
+          ProjectCard(
+            icon: Icons.tab,
+            name: 'Gmini Avilable Models Test',
+            description: 'Gmini Models',
+            onTap: () {
+              listMyAvailableModels();
+
             },
           ),
         ],
@@ -121,6 +145,9 @@ class ProjectCard extends StatelessWidget {
     required this.description,
     required this.onTap,
   });
+
+
+
 
   @override
   Widget build(BuildContext context) {

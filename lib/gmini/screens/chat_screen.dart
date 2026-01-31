@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dash_chat_2/dash_chat_2.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -25,8 +25,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final ChatUser _currentUser = ChatUser(id: '1', firstName: 'You');
   final ChatUser _geminiUser = ChatUser(
     id: '2',
-    firstName: 'Gemini',
-    profileImage: 'https://seeklogo.com/images/G/google-gemini-logo-A14DE72613-seeklogo.com.png',
+    firstName: 'HiruAi',
+    profileImage: 'https://i.postimg.cc/50Pwm3XV/logo.png',
   );
 
   final List<ChatMessage> _messages = <ChatMessage>[];
@@ -36,7 +36,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HiruAi with Gemini'),
+        title: const Text('HiruAi'),
         centerTitle: true,
       ),
       body: DashChat(
@@ -84,7 +84,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _showError(e.toString());
     } finally {
       setState(() {
-        _typingUsers.remove(_geminiUser); // লোডিং অ্যানিমেশন বন্ধ
+        _typingUsers.remove(_geminiUser);
       });
     }
   }
@@ -95,13 +95,12 @@ class _ChatScreenState extends State<ChatScreen> {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      final bytes = await File(pickedFile.path).readAsBytes();
-      final imageBase64 = base64Encode(bytes);
+      final Uint8List imageBytes = await File(pickedFile.path).readAsBytes();
 
       final chatMessage = ChatMessage(
         user: _currentUser,
         createdAt: DateTime.now(),
-        text: 'Analyze this image', // ডিফল্ট প্রম্পট
+        text: 'Analyze this image',
         medias: [
           ChatMedia(
             url: pickedFile.path,
@@ -118,7 +117,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
       try {
         final response = await _geminiService.analyzeImage(
-            imageBase64, chatMessage.text);
+            imageBytes, chatMessage.text);
 
         final geminiResponse = ChatMessage(
           user: _geminiUser,
