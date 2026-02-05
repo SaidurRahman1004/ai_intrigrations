@@ -5,7 +5,7 @@ import '../../core/constant.dart';
 
 class HuggingFaceService {
   final String apiTocken = AppConst.huggingFaceApi;
-  final String baseUrl = 'https://api-inference.huggingface.co/models';
+  final String baseUrl = 'https://router.huggingface.co/models';
 
   Future<String> generateText({
     required String prompt,

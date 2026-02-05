@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'Hugging Face AI/screens/hugging_chat_screeen.dart';
 import 'Simulation/ai_semolatiom_demo.dart';
 import 'core/constant.dart';
 import 'gmini/screens/chat_screen.dart';
@@ -117,11 +118,14 @@ class AiProjects extends StatelessWidget {
           ),
 
           ProjectCard(
-            icon: Icons.tab,
-            name: 'Gmini Avilable Models Test',
-            description: 'Gmini Models',
+            icon: Icons.military_tech,
+            name: 'HuggingFaceIntrigration',
+            description: 'Text,Translate,Emotion',
             onTap: () {
-              listMyAvailableModels();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HuggingFacePlaygroundScreen()),
+              );
 
             },
           ),
@@ -155,7 +159,6 @@ class ProjectCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12.0),
-        // বর্ডারের সাথে মিল রেখে ট্যাপ ইফেক্ট
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
