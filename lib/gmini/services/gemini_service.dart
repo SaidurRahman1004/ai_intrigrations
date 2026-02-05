@@ -12,7 +12,7 @@ class GeminiService {
     );
   }
 
-  //setn Input txt msg only
+  //sent Input txt msg only
   Future<String> sendMessage(String prompt) async {
     try {
       final content = [Content.text(prompt)];
