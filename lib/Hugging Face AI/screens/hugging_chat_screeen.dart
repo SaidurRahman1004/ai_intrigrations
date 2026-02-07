@@ -1,6 +1,8 @@
 import 'package:ai_intrigrations/Hugging%20Face%20AI/services/huggingface_service.dart';
 import 'package:flutter/material.dart';
 
+import 'subsScreens/text_genaration_screen.dart';
+
 class HuggingFaceScreen extends StatefulWidget {
   const HuggingFaceScreen({super.key});
 
@@ -12,70 +14,20 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
     with SingleTickerProviderStateMixin {
   final HuggingFaceService _huggingFaceService = HuggingFaceService();
   late TabController _tabController;
-  final _textCtrl = TextEditingController();
-  String _result = '';
-  bool _isLoading = false;
-
-  int _selectedTab = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.index != _selectedTab) {
-        setState(() {
-          _selectedTab = _tabController.index;
-          _result = '';
-          _textCtrl.clear();
-          _isLoading = false;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _textCtrl.dispose();
+ 
     super.dispose();
   }
 
-  // API Call Logic
-  Future<void> _performAction() async {
-    if (_textCtrl.text.trim().isEmpty) return;
-    setState(() => _isLoading = true);
-
-    try {
-      String response;
-      switch (_selectedTab) {
-        case 0:
-          response = await _huggingFaceService.generateText(
-            prompt: _textCtrl.text,
-          );
-          break;
-        case 1:
-          response = await _huggingFaceService.translateText(
-            text: _textCtrl.text,
-          );
-          break;
-        case 2:
-          final sentiment = await _huggingFaceService.analyzeSentiment(
-            _textCtrl.text,
-          );
-          response =
-              'Emotion: ${sentiment['emoji']} ${sentiment['emotion']}\nConfidence: ${(sentiment['confidence'] * 100).toStringAsFixed(1)}%';
-          break;
-        default:
-          response = "Please select a tab.";
-      }
-      setState(() => _result = response);
-    } catch (e) {
-      setState(() => _result = 'Error: ${e.toString()}');
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,7 +40,11 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
             _buildTabBar(),
             Expanded(
               // Filling the empty TabBarView
-              child: TabBarView(controller: _tabController, children: []),
+              child: TabBarView(controller: _tabController, children: [
+                TextGenarationScreen(huggingFaceService: _huggingFaceService,),
+                Card(child: Text('Translet'),),
+                Card(child: Text('Emotion'),),
+              ]),
             ),
           ],
         ),
