@@ -10,7 +10,6 @@ class HuggingFaceScreen extends StatefulWidget {
 
 class _HuggingFaceScreenState extends State<HuggingFaceScreen>
     with SingleTickerProviderStateMixin {
-
   final HuggingFaceService _huggingFaceService = HuggingFaceService();
   late TabController _tabController;
   final _textCtrl = TextEditingController();
@@ -18,7 +17,6 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
   bool _isLoading = false;
 
   int _selectedTab = 0;
-
 
   @override
   void initState() {
@@ -45,28 +43,28 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
 
   // API Call Logic
   Future<void> _performAction() async {
-    if (_textCtrl.text
-        .trim()
-        .isEmpty) return;
+    if (_textCtrl.text.trim().isEmpty) return;
     setState(() => _isLoading = true);
 
     try {
       String response;
       switch (_selectedTab) {
         case 0:
-          response =
-          await _huggingFaceService.generateText(prompt: _textCtrl.text);
+          response = await _huggingFaceService.generateText(
+            prompt: _textCtrl.text,
+          );
           break;
         case 1:
-          response =
-          await _huggingFaceService.translateText(text: _textCtrl.text);
+          response = await _huggingFaceService.translateText(
+            text: _textCtrl.text,
+          );
           break;
         case 2:
           final sentiment = await _huggingFaceService.analyzeSentiment(
-              _textCtrl.text);
+            _textCtrl.text,
+          );
           response =
-          'Emotion: ${sentiment['emoji']} ${sentiment['emotion']}\nConfidence: ${(sentiment['confidence'] *
-              100).toStringAsFixed(1)}%';
+              'Emotion: ${sentiment['emoji']} ${sentiment['emotion']}\nConfidence: ${(sentiment['confidence'] * 100).toStringAsFixed(1)}%';
           break;
         default:
           response = "Please select a tab.";
@@ -82,10 +80,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
-      backgroundColor: Theme
-          .of(context)
-          .scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -93,17 +88,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
             _buildTabBar(),
             Expanded(
               // Filling the empty TabBarView
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildTabContent(
-                      hintText: 'Enter a prompt to generate text...'),
-                  _buildTabContent(
-                      hintText: 'Enter English text to translate to Bengali...'),
-                  _buildTabContent(
-                      hintText: 'Enter text to analyze its emotion...'),
-                ],
-              ),
+              child: TabBarView(controller: _tabController, children: []),
             ),
           ],
         ),
@@ -123,16 +108,17 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Theme
-                    .of(context)
-                    .primaryColor, Colors.blueAccent],
+                colors: [Theme.of(context).primaryColor, Colors.blueAccent],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
-                Icons.auto_awesome, color: Colors.white, size: 28),
+              Icons.auto_awesome,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           const Column(
@@ -179,97 +165,28 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
           // Indicator
           indicator: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Theme
-                  .of(context)
-                  .primaryColor, Colors.blueAccent],
+              colors: [Theme.of(context).primaryColor, Colors.blueAccent],
             ),
             borderRadius: BorderRadius.circular(16),
           ),
           indicatorSize: TabBarIndicatorSize.tab,
           // Makes indicator fit the tab
           labelColor: Colors.white,
-          unselectedLabelColor: Theme
-              .of(context)
-              .primaryColor,
+          unselectedLabelColor: Theme.of(context).primaryColor,
           labelStyle: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 13),
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+          ),
           tabs: const [
-            Tab(
-              icon: Icon(Icons.edit, size: 20),
-              text: 'Generate',
-            ),
-            Tab(
-              icon: Icon(Icons.translate, size: 20),
-              text: 'Translate',
-            ),
-            Tab(
-              icon: Icon(Icons.emoji_emotions, size: 20),
-              text: 'Emotion',
-            ),
+            Tab(icon: Icon(Icons.edit, size: 20), text: 'Generate'),
+            Tab(icon: Icon(Icons.translate, size: 20), text: 'Translate'),
+            Tab(icon: Icon(Icons.emoji_emotions, size: 20), text: 'Emotion'),
           ],
         ),
       ),
     );
   }
 
-  // A reusable widget for the content of each tab
-  Widget _buildTabContent({required String hintText}) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          // Input Field
-          TextField(
-            controller: _textCtrl,
-            minLines: 4,
-            maxLines: 6,
-            decoration: InputDecoration(
-              hintText: hintText,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(Icons.send_rounded, color: Theme
-                    .of(context)
-                    .primaryColor),
-                onPressed: _isLoading ? null : _performAction,
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
 
-          // Result Display
-          if (_isLoading)
-            const CircularProgressIndicator()
-          else
-            if (_result.isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(15),
-                      blurRadius: 10,
-                    )
-                  ],
-                ),
-                child: SelectableText(
-                  _result,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: _result.startsWith('Error')
-                        ? Colors.red.shade700
-                        : Colors.black87,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-        ],
-      ),
-    );
-  }
+
 }
