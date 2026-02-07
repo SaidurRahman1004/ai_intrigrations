@@ -124,7 +124,7 @@ class AiProjects extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const HuggingFacePlaygroundScreen()),
+                MaterialPageRoute(builder: (context) => const HuggingFaceScreen()),
               );
 
             },

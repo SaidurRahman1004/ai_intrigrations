@@ -49,8 +49,16 @@ class HuggingFaceService {
       } else if (response.statusCode == 401) {
         throw Exception('Invalid API token! Check .env file');
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception('API Error: ${error['error'] ?? response.statusCode}');
+        String errorMessage = 'API Error: ${response.statusCode}';
+        try {
+          final error = jsonDecode(response.body);
+          if (error['error'] != null) {
+            errorMessage = 'API Error: ${error['error']}';
+          }
+        } catch (e) {
+          errorMessage = 'API Error: ${response.statusCode} - ${response.body}';
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       debugPrint('Error generating text: $e');
@@ -103,8 +111,16 @@ class HuggingFaceService {
       } else if (response.statusCode == 401) {
         throw Exception('Invalid API token! Check .env file');
       } else {
-        final error = jsonDecode(response.body);
-        throw Exception('API Error: ${error['error'] ?? response.statusCode}');
+        String errorMessage = 'API Error: ${response.statusCode}';
+        try {
+          final error = jsonDecode(response.body);
+          if (error['error'] != null) {
+            errorMessage = 'API Error: ${error['error']}';
+          }
+        } catch (e) {
+          errorMessage = 'API Error: ${response.statusCode} - ${response.body}';
+        }
+        throw Exception(errorMessage);
       }
     } catch (e) {
       debugPrint('Error translating text: $e');
@@ -160,8 +176,16 @@ class HuggingFaceService {
           'emoji': '⏳',
         };
       }else{
-        final error = jsonDecode(response.body);
-        throw Exception('API Error: ${error['error'] ?? response.statusCode}');
+        String errorMessage = 'API Error: ${response.statusCode}';
+        try {
+          final error = jsonDecode(response.body);
+          if (error['error'] != null) {
+            errorMessage = 'API Error: ${error['error']}';
+          }
+        } catch (e) {
+          errorMessage = 'API Error: ${response.statusCode} - ${response.body}';
+        }
+        throw Exception(errorMessage);
 
       }
     }catch(e) {

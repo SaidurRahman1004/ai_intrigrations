@@ -1,400 +1,273 @@
-// lib/Hugging Face AI/screens/hugging_chat_screeen.dart
-
+import 'package:ai_intrigrations/Hugging%20Face%20AI/services/huggingface_service.dart';
 import 'package:flutter/material.dart';
-import '../services/huggingface_service.dart';
 
-class HuggingFacePlaygroundScreen extends StatefulWidget {
-  const HuggingFacePlaygroundScreen({super.key});
+class HuggingFaceScreen extends StatefulWidget {
+  const HuggingFaceScreen({super.key});
 
   @override
-  State<HuggingFacePlaygroundScreen> createState() =>
-      _HuggingFacePlaygroundScreenState();
+  State<HuggingFaceScreen> createState() => _HuggingFaceScreenState();
 }
 
-class _HuggingFacePlaygroundScreenState
-    extends State<HuggingFacePlaygroundScreen>
+class _HuggingFaceScreenState extends State<HuggingFaceScreen>
     with SingleTickerProviderStateMixin {
-  late final HuggingFaceService _huggingFaceService;
-  late final TabController _tabController;
+
+  final HuggingFaceService _huggingFaceService = HuggingFaceService();
+  late TabController _tabController;
+  final _textCtrl = TextEditingController();
+  String _result = '';
+  bool _isLoading = false;
+
+  int _selectedTab = 0;
+
 
   @override
   void initState() {
     super.initState();
-    _huggingFaceService = HuggingFaceService();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (_tabController.index != _selectedTab) {
+        setState(() {
+          _selectedTab = _tabController.index;
+          _result = '';
+          _textCtrl.clear();
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _textCtrl.dispose();
     super.dispose();
+  }
+
+  // API Call Logic
+  Future<void> _performAction() async {
+    if (_textCtrl.text
+        .trim()
+        .isEmpty) return;
+    setState(() => _isLoading = true);
+
+    try {
+      String response;
+      switch (_selectedTab) {
+        case 0:
+          response =
+          await _huggingFaceService.generateText(prompt: _textCtrl.text);
+          break;
+        case 1:
+          response =
+          await _huggingFaceService.translateText(text: _textCtrl.text);
+          break;
+        case 2:
+          final sentiment = await _huggingFaceService.analyzeSentiment(
+              _textCtrl.text);
+          response =
+          'Emotion: ${sentiment['emoji']} ${sentiment['emotion']}\nConfidence: ${(sentiment['confidence'] *
+              100).toStringAsFixed(1)}%';
+          break;
+        default:
+          response = "Please select a tab.";
+      }
+      setState(() => _result = response);
+    } catch (e) {
+      setState(() => _result = 'Error: ${e.toString()}');
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Hugging Face Playground'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.text_fields_sharp), text: 'Generate'),
-            Tab(icon: Icon(Icons.translate), text: 'Translate'),
-            Tab(icon: Icon(Icons.sentiment_satisfied_alt), text: 'Emotion'),
+
+      backgroundColor: Theme
+          .of(context)
+          .scaffoldBackgroundColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppbar(),
+            _buildTabBar(),
+            Expanded(
+              // Filling the empty TabBarView
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildTabContent(
+                      hintText: 'Enter a prompt to generate text...'),
+                  _buildTabContent(
+                      hintText: 'Enter English text to translate to Bengali...'),
+                  _buildTabContent(
+                      hintText: 'Enter text to analyze its emotion...'),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          // ট্যাব ১: টেক্সট জেনারেশন
-          GenerateTextTab(huggingFaceService: _huggingFaceService),
-          // ট্যাব ২: অনুবাদ
-          TranslateTab(huggingFaceService: _huggingFaceService),
-          // ট্যাব ৩: আবেগ বিশ্লেষণ
-          EmotionTab(huggingFaceService: _huggingFaceService),
-        ],
-      ),
     );
   }
-}
 
+  // --- UI Widgets ---
 
-class GenerateTextTab extends StatefulWidget {
-  final HuggingFaceService huggingFaceService;
-
-  const GenerateTextTab({super.key, required this.huggingFaceService});
-
-  @override
-  State<GenerateTextTab> createState() => _GenerateTextTabState();
-}
-
-class _GenerateTextTabState extends State<GenerateTextTab> {
-  final TextEditingController _controller = TextEditingController();
-  String _generatedText = 'AI response will appear here...';
-  bool _isLoading = false;
-
-  void _generateText() async {
-    if (_controller.text.isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-      _generatedText = 'Generating...';
-    });
-
-    try {
-      final result =
-      await widget.huggingFaceService.generateText(prompt: _controller.text);
-      setState(() {
-        _generatedText = result;
-      });
-    } catch (e) {
-      setState(() {
-        _generatedText = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+  // Appbar - Refined version of your code
+  Widget _buildAppbar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
         children: [
-          TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              labelText: 'Enter your prompt here',
-              hintText: 'e.g., "Once upon a time..."',
-              border: const OutlineInputBorder(),
-              suffixIcon: _isLoading
-                  ? const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              )
-                  : IconButton(
-                icon: const Icon(Icons.send),
-                onPressed: _generateText,
-              ),
-            ),
-            onSubmitted: (_) => _generateText(),
-          ),
-          const SizedBox(height: 24),
-          Text('Generated Text:',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .titleLarge),
-          const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(8.0),
+              gradient: LinearGradient(
+                colors: [Theme
+                    .of(context)
+                    .primaryColor, Colors.blueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
-            child: SelectableText( // Using SelectableText to allow copying
-              _generatedText,
-              style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-            ),
+            child: const Icon(
+                Icons.auto_awesome, color: Colors.white, size: 28),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-// ==========================================================
-// অনুবাদ ট্যাবের জন্য UI
-// ==========================================================
-class TranslateTab extends StatefulWidget {
-  final HuggingFaceService huggingFaceService;
-
-  const TranslateTab({super.key, required this.huggingFaceService});
-
-  @override
-  State<TranslateTab> createState() => _TranslateTabState();
-}
-
-class _TranslateTabState extends State<TranslateTab> {
-  final TextEditingController _controller = TextEditingController();
-  String _translatedText = 'Translated text will appear here...';
-  bool _isLoading = false;
-  String _fromLang = 'en';
-  String _toLang = 'bn';
-
-  void _translateText() async {
-    if (_controller.text.isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-      _translatedText = 'Translating...';
-    });
-
-    try {
-      final result = await widget.huggingFaceService.translateText(
-        text: _controller.text,
-        fromLang: _fromLang,
-        toLang: _toLang,
-      );
-      setState(() {
-        _translatedText = result;
-      });
-    } catch (e) {
-      setState(() {
-        _translatedText = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          const SizedBox(width: 16),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildLanguageSelector('From:', _fromLang, (val) =>
-                  setState(() => _fromLang = val!)),
-              IconButton(
-                icon: const Icon(
-                    Icons.swap_horiz, size: 30, color: Colors.deepPurple),
-                onPressed: () {
-                  setState(() {
-                    final tempLang = _fromLang;
-                    _fromLang = _toLang;
-                    _toLang = tempLang;
-                  });
-                },
-              ),
-              _buildLanguageSelector(
-                  'To:', _toLang, (val) => setState(() => _toLang = val!)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _controller,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Enter text to translate',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _isLoading ? null : _translateText,
-            icon: _isLoading
-                ? Container()
-                : const Icon(Icons.translate),
-            label: _isLoading
-                ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                  strokeWidth: 2, color: Colors.white),
-            )
-                : const Text('Translate'),
-          ),
-          const SizedBox(height: 24),
-          Text('Result:', style: Theme
-              .of(context)
-              .textTheme
-              .titleLarge),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(12.0),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: SelectableText(
-              _translatedText,
-              style: const TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLanguageSelector(String title, String value,
-      ValueChanged<String?> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        DropdownButton<String>(
-          value: value,
-          items: const [
-            DropdownMenuItem(value: 'en', child: Text('English')),
-            DropdownMenuItem(value: 'bn', child: Text('Bengali')),
-          ],
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-// ==========================================================
-// আবেগ বিশ্লেষণ ট্যাবের জন্য UI
-// ==========================================================
-class EmotionTab extends StatefulWidget {
-  final HuggingFaceService huggingFaceService;
-
-  const EmotionTab({super.key, required this.huggingFaceService});
-
-  @override
-  State<EmotionTab> createState() => _EmotionTabState();
-}
-
-class _EmotionTabState extends State<EmotionTab> {
-  final TextEditingController _controller = TextEditingController();
-  Map<String, dynamic>? _analysisResult;
-  bool _isLoading = false;
-
-  void _analyzeSentiment() async {
-    if (_controller.text.isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-      _analysisResult = null;
-    });
-
-    try {
-      final result = await widget.huggingFaceService.analyzeSentiment(
-          _controller.text);
-      setState(() {
-        _analysisResult = result;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red),
-      );
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TextField(
-            controller: _controller,
-            maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Enter text for sentiment analysis',
-              border: OutlineInputBorder(),
-            ),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _isLoading ? null : _analyzeSentiment,
-            icon: _isLoading ? Container() : const Icon(Icons.analytics),
-            label: _isLoading
-                ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white))
-                : const Text('Analyze Emotion'),
-          ),
-          const SizedBox(height: 24),
-          if (_isLoading)
-            const Center(child: CircularProgressIndicator()),
-          if (_analysisResult != null)
-            Card(
-              elevation: 4,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    Text(
-                      _analysisResult!['emoji'],
-                      style: const TextStyle(fontSize: 60),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Detected Emotion: ${_analysisResult!['emotion']
-                          ?.toString()
-                          .toUpperCase()}',
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Confidence: ${(_analysisResult!['confidence'] * 100)
-                          .toStringAsFixed(1)}%',
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .bodyLarge,
-                    ),
-                  ],
+              Text(
+                'HuggingFace AI',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
+              Text(
+                'Open Source AI Models',
+                style: TextStyle(fontSize: 14, color: Colors.black54),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // TabBar - Refined version of your code
+  Widget _buildTabBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(20), // Using withAlpha
+              blurRadius: 10,
+              spreadRadius: 2,
             ),
+          ],
+        ),
+        child: TabBar(
+          controller: _tabController,
+          // Indicator
+          indicator: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Theme
+                  .of(context)
+                  .primaryColor, Colors.blueAccent],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          indicatorSize: TabBarIndicatorSize.tab,
+          // Makes indicator fit the tab
+          labelColor: Colors.white,
+          unselectedLabelColor: Theme
+              .of(context)
+              .primaryColor,
+          labelStyle: const TextStyle(
+              fontWeight: FontWeight.bold, fontSize: 13),
+          tabs: const [
+            Tab(
+              icon: Icon(Icons.edit, size: 20),
+              text: 'Generate',
+            ),
+            Tab(
+              icon: Icon(Icons.translate, size: 20),
+              text: 'Translate',
+            ),
+            Tab(
+              icon: Icon(Icons.emoji_emotions, size: 20),
+              text: 'Emotion',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // A reusable widget for the content of each tab
+  Widget _buildTabContent({required String hintText}) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          // Input Field
+          TextField(
+            controller: _textCtrl,
+            minLines: 4,
+            maxLines: 6,
+            decoration: InputDecoration(
+              hintText: hintText,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(Icons.send_rounded, color: Theme
+                    .of(context)
+                    .primaryColor),
+                onPressed: _isLoading ? null : _performAction,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Result Display
+          if (_isLoading)
+            const CircularProgressIndicator()
+          else
+            if (_result.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withAlpha(15),
+                      blurRadius: 10,
+                    )
+                  ],
+                ),
+                child: SelectableText(
+                  _result,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: _result.startsWith('Error')
+                        ? Colors.red.shade700
+                        : Colors.black87,
+                    height: 1.5,
+                  ),
+                ),
+              ),
         ],
       ),
     );
