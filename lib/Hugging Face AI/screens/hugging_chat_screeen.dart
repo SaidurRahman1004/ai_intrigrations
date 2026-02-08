@@ -1,3 +1,4 @@
+import 'package:ai_intrigrations/Hugging%20Face%20AI/screens/subsScreens/emotional_sentimental_screen.dart';
 import 'package:ai_intrigrations/Hugging%20Face%20AI/services/huggingface_service.dart';
 import 'package:flutter/material.dart';
 
@@ -42,8 +43,8 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
               // Filling the empty TabBarView
               child: TabBarView(controller: _tabController, children: [
                 TextGenarationScreen(huggingFaceService: _huggingFaceService,),
-                Card(child: Text('Translet'),),
                 Card(child: Text('Emotion'),),
+                EmotionalSentimentalScreen(huggingFaceService: _huggingFaceService,),
               ]),
             ),
           ],
