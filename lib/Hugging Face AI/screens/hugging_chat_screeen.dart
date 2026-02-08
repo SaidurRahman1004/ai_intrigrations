@@ -1,4 +1,5 @@
 import 'package:ai_intrigrations/Hugging%20Face%20AI/screens/subsScreens/emotional_sentimental_screen.dart';
+import 'package:ai_intrigrations/Hugging%20Face%20AI/screens/subsScreens/translations_screen.dart';
 import 'package:ai_intrigrations/Hugging%20Face%20AI/services/huggingface_service.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +44,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
               // Filling the empty TabBarView
               child: TabBarView(controller: _tabController, children: [
                 TextGenarationScreen(huggingFaceService: _huggingFaceService,),
-                Card(child: Text('Emotion'),),
+                TranslationText(huggingFaceService: _huggingFaceService,),
                 EmotionalSentimentalScreen(huggingFaceService: _huggingFaceService,),
               ]),
             ),
@@ -53,9 +54,8 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
     );
   }
 
-  // --- UI Widgets ---
 
-  // Appbar - Refined version of your code
+  // Appbar
   Widget _buildAppbar() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -82,7 +82,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'HuggingFace AI',
+                'Flutter AI HuggingFace',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -90,7 +90,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
                 ),
               ),
               Text(
-                'Open Source AI Models',
+                'Ai Intrigration with Flutter',
                 style: TextStyle(fontSize: 14, color: Colors.black54),
               ),
             ],
@@ -100,7 +100,7 @@ class _HuggingFaceScreenState extends State<HuggingFaceScreen>
     );
   }
 
-  // TabBar - Refined version of your code
+  // TabBar
   Widget _buildTabBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

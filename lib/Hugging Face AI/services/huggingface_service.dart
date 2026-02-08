@@ -4,12 +4,12 @@ import 'package:http/http.dart' as http;
 import '../../core/constant.dart';
 
 class HuggingFaceService {
-  final String apiTocken = AppConst.huggingFaceApi;
-  final String baseUrl = 'https://api-inference.huggingface.co/models';
+  final String apiTocken = AppConst.huggingFaceApi; //AppConst.huggingFaceApi
+  final String baseUrl = 'https://router.huggingface.co/hf-inference/models';
 
   Future<String> generateText({
     required String prompt,
-    String modelId = 'gpt2',
+    String modelId = 'google/gemma-7b',
   }) async {
     try {
       debugPrint('Generating text with prompt: $modelId');
@@ -18,11 +18,10 @@ class HuggingFaceService {
       final requestBody = {
         'inputs': prompt,
         'parameters': {
-          'max_length': 100,
+          'max_new_tokens': 100,
           'temperature': 0.7,
-          'top_p': 0.9,
-          'do_sample': true,
-        },
+          'return_full_text': false,
+        }
       };
       debugPrint('sending request...');
       final response = await http.post(
@@ -37,11 +36,17 @@ class HuggingFaceService {
       if (response.statusCode == 200) {
         final responseBody = jsonDecode(response.body);
 
-        if (responseBody is List && responseBody.isNotEmpty) {
-          final generatedText = responseBody[0]['generated_text'] as String;
-          debugPrint('🙌 Generated: ${generatedText.substring(0, 50)}...');
+        if (responseBody is Map && responseBody.containsKey('generated_text')) {
+          final generatedText = responseBody['generated_text'] as String;
+          debugPrint(' Generated: $generatedText');
           return generatedText.trim();
-        } else {
+        }else if (responseBody is List && responseBody.isNotEmpty) {
+
+          final generatedText = responseBody[0]['generated_text'] as String;
+          debugPrint(' Generated (from list): $generatedText');
+          return generatedText.trim();
+        }
+        else {
           throw Exception('Empty response from model');
         }
       } else if (response.statusCode == 503) {
@@ -81,6 +86,7 @@ class HuggingFaceService {
       } else if (fromLang == 'bn' && toLang == 'en') {
         modelId = 'Helsinki-NLP/opus-mt-bn-en';
       } else {
+        if (fromLang == toLang) return text;
         throw Exception('Unsupported language pair: $fromLang → $toLang');
       }
       final url = Uri.parse('$baseUrl/$modelId');

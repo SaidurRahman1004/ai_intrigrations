@@ -99,7 +99,7 @@ class _EmotionalSentimentalScreenState
                       ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          child: Center(  child: CircularProgressIndicator(strokeWidth: 2)),
                         )
                       : ElevatedButton.icon(
                           onPressed: _isLoading ? null : _analyzeEmotions,
